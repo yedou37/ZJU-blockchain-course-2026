@@ -1,0 +1,2355 @@
+{
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8545",
+  "deployedAt": "2026-10-30T09:08:13.900Z",
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "tokens": [
+    {
+      "symbol": "TKA",
+      "name": "Token A",
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "decimals": 18
+    },
+    {
+      "symbol": "TKB",
+      "name": "Token B",
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "decimals": 18
+    },
+    {
+      "symbol": "TKC",
+      "name": "Token C",
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "decimals": 18
+    }
+  ],
+  "weth": {
+    "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+    "symbol": "WETH",
+    "decimals": 18
+  },
+  "faucet": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+  "dexes": [
+    {
+      "key": "A",
+      "name": "MiniDEX-A",
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "pools": [
+        {
+          "poolId": 1,
+          "token0": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "token1": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+          "symbol0": "TKA",
+          "symbol1": "TKB",
+          "label": "TKA/TKB"
+        },
+        {
+          "poolId": 2,
+          "token0": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "token1": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+          "symbol0": "TKA",
+          "symbol1": "WETH",
+          "label": "TKA/WETH"
+        }
+      ]
+    },
+    {
+      "key": "B",
+      "name": "MiniDEX-B",
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "pools": [
+        {
+          "poolId": 1,
+          "token0": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "token1": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+          "symbol0": "TKA",
+          "symbol1": "TKB",
+          "label": "TKA/TKB"
+        },
+        {
+          "poolId": 2,
+          "token0": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+          "token1": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+          "symbol0": "TKA",
+          "symbol1": "WETH",
+          "label": "TKA/WETH"
+        }
+      ]
+    }
+  ],
+  "arbitrage": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+  "abis": {
+    "MiniDEX": [
+      {
+        "type": "constructor",
+        "stateMutability": "undefined",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "string",
+            "name": "exchangeName"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721IncorrectOwner",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          },
+          {
+            "type": "address",
+            "name": "owner"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InsufficientApproval",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "operator"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InvalidApprover",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "approver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InvalidOperator",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "operator"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InvalidOwner",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InvalidReceiver",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "receiver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721InvalidSender",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC721NonexistentToken",
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ReentrancyGuardReentrantCall",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "SafeERC20FailedOperation",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "token"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Approval",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "approved",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId",
+            "indexed": true
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "ApprovalForAll",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "operator",
+            "indexed": true
+          },
+          {
+            "type": "bool",
+            "name": "approved",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "LiquidityAdded",
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "positionId",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "provider",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "amount0",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "amount1",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "shares",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "LiquidityRemoved",
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "positionId",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "provider",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "amount0",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "amount1",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "shares",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "PoolCreated",
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "token0",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "token1",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "createdAt",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Swap",
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "trader",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "tokenIn",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "amountOut",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "reserve0",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "reserve1",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Transfer",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "to",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId",
+            "indexed": true
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "BPS",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "FEE_BPS",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "addLiquidity",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "uint256",
+            "name": "amount0Desired"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1Desired"
+          },
+          {
+            "type": "uint256",
+            "name": "amount0Min"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1Min"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "positionId"
+          },
+          {
+            "type": "uint256",
+            "name": "amount0"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1"
+          },
+          {
+            "type": "uint256",
+            "name": "shares"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "approve",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "balanceOf",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "createPool",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "tokenA"
+          },
+          {
+            "type": "address",
+            "name": "tokenB"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getAllPositions",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "tuple[]",
+            "name": "list",
+            "components": [
+              {
+                "type": "uint256",
+                "name": "tokenId"
+              },
+              {
+                "type": "address",
+                "name": "owner"
+              },
+              {
+                "type": "uint256",
+                "name": "poolId"
+              },
+              {
+                "type": "uint256",
+                "name": "shares"
+              },
+              {
+                "type": "uint256",
+                "name": "amount0"
+              },
+              {
+                "type": "uint256",
+                "name": "amount1"
+              },
+              {
+                "type": "uint256",
+                "name": "createdAt"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getAmountOut",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "address",
+            "name": "tokenIn"
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getApproved",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "address",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getPool",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "tuple",
+            "name": "",
+            "components": [
+              {
+                "type": "uint256",
+                "name": "poolId"
+              },
+              {
+                "type": "address",
+                "name": "token0"
+              },
+              {
+                "type": "address",
+                "name": "token1"
+              },
+              {
+                "type": "uint256",
+                "name": "reserve0"
+              },
+              {
+                "type": "uint256",
+                "name": "reserve1"
+              },
+              {
+                "type": "uint256",
+                "name": "totalShares"
+              },
+              {
+                "type": "uint256",
+                "name": "feeBps"
+              },
+              {
+                "type": "uint256",
+                "name": "createdAt"
+              },
+              {
+                "type": "uint256",
+                "name": "swapCount"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getPools",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "tuple[]",
+            "name": "list",
+            "components": [
+              {
+                "type": "uint256",
+                "name": "poolId"
+              },
+              {
+                "type": "address",
+                "name": "token0"
+              },
+              {
+                "type": "address",
+                "name": "token1"
+              },
+              {
+                "type": "uint256",
+                "name": "reserve0"
+              },
+              {
+                "type": "uint256",
+                "name": "reserve1"
+              },
+              {
+                "type": "uint256",
+                "name": "totalShares"
+              },
+              {
+                "type": "uint256",
+                "name": "feeBps"
+              },
+              {
+                "type": "uint256",
+                "name": "createdAt"
+              },
+              {
+                "type": "uint256",
+                "name": "swapCount"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getPositionValue",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "positionId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "amount0"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getReserves",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "address",
+            "name": "token0"
+          },
+          {
+            "type": "address",
+            "name": "token1"
+          },
+          {
+            "type": "uint256",
+            "name": "reserve0"
+          },
+          {
+            "type": "uint256",
+            "name": "reserve1"
+          },
+          {
+            "type": "uint256",
+            "name": "totalShares"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "getSpotPrice",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "isApprovedForAll",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          },
+          {
+            "type": "address",
+            "name": "operator"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "name",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "ownerOf",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "address",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "poolCount",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "poolIdOfPair",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "bytes32",
+            "name": ""
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "pools",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "address",
+            "name": "token0"
+          },
+          {
+            "type": "address",
+            "name": "token1"
+          },
+          {
+            "type": "uint256",
+            "name": "reserve0"
+          },
+          {
+            "type": "uint256",
+            "name": "reserve1"
+          },
+          {
+            "type": "uint256",
+            "name": "totalShares"
+          },
+          {
+            "type": "uint256",
+            "name": "feeBps"
+          },
+          {
+            "type": "uint256",
+            "name": "createdAt"
+          },
+          {
+            "type": "uint256",
+            "name": "swapCount"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "positionCount",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "positions",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "uint256",
+            "name": "shares"
+          },
+          {
+            "type": "uint256",
+            "name": "amount0AtMint"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1AtMint"
+          },
+          {
+            "type": "uint256",
+            "name": "createdAt"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "removeLiquidity",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "positionId"
+          },
+          {
+            "type": "uint256",
+            "name": "amount0Min"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1Min"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "amount0"
+          },
+          {
+            "type": "uint256",
+            "name": "amount1"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "safeTransferFrom",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "safeTransferFrom",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          },
+          {
+            "type": "bytes",
+            "name": "data"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "setApprovalForAll",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "operator"
+          },
+          {
+            "type": "bool",
+            "name": "approved"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "supportsInterface",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "bytes4",
+            "name": "interfaceId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "swapExactIn",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "address",
+            "name": "tokenIn"
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn"
+          },
+          {
+            "type": "uint256",
+            "name": "minAmountOut"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "amountOut"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "symbol",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "tokenIdsOf",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256[]",
+            "name": "ids"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "tokenURI",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "transferFrom",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "tokenId"
+          }
+        ],
+        "outputs": []
+      }
+    ],
+    "MockERC20": [
+      {
+        "type": "constructor",
+        "stateMutability": "undefined",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "string",
+            "name": "name_"
+          },
+          {
+            "type": "string",
+            "name": "symbol_"
+          },
+          {
+            "type": "uint8",
+            "name": "decimals_"
+          },
+          {
+            "type": "uint256",
+            "name": "initialSupply"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InsufficientAllowance",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          },
+          {
+            "type": "uint256",
+            "name": "allowance"
+          },
+          {
+            "type": "uint256",
+            "name": "needed"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InsufficientBalance",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          },
+          {
+            "type": "uint256",
+            "name": "balance"
+          },
+          {
+            "type": "uint256",
+            "name": "needed"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidApprover",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "approver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidReceiver",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "receiver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidSender",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidSpender",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Approval",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "spender",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "value",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "FaucetClaimed",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "user",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "amount",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Transfer",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "to",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "value",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "FAUCET_AMOUNT",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "FAUCET_COOLDOWN",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "allowance",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          },
+          {
+            "type": "address",
+            "name": "spender"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "approve",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "balanceOf",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "account"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "claim",
+        "constant": false,
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "decimals",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint8",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "faucetCooldownLeft",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "user"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "lastClaimAt",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": ""
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "name",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "symbol",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "totalSupply",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "transfer",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "transferFrom",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      }
+    ],
+    "MockWETH": [
+      {
+        "type": "constructor",
+        "stateMutability": "undefined",
+        "payable": false,
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "ERC20InsufficientAllowance",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          },
+          {
+            "type": "uint256",
+            "name": "allowance"
+          },
+          {
+            "type": "uint256",
+            "name": "needed"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InsufficientBalance",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          },
+          {
+            "type": "uint256",
+            "name": "balance"
+          },
+          {
+            "type": "uint256",
+            "name": "needed"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidApprover",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "approver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidReceiver",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "receiver"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidSender",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "sender"
+          }
+        ]
+      },
+      {
+        "type": "error",
+        "name": "ERC20InvalidSpender",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Approval",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "spender",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "value",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Deposit",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "dst",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "wad",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Transfer",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "to",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "value",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "Withdrawal",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "src",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "wad",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "allowance",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "owner"
+          },
+          {
+            "type": "address",
+            "name": "spender"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "approve",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "spender"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "balanceOf",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "account"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "decimals",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint8",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "deposit",
+        "constant": false,
+        "stateMutability": "payable",
+        "payable": true,
+        "inputs": [],
+        "outputs": []
+      },
+      {
+        "type": "function",
+        "name": "name",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "symbol",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "string",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "totalSupply",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "transfer",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "transferFrom",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "from"
+          },
+          {
+            "type": "address",
+            "name": "to"
+          },
+          {
+            "type": "uint256",
+            "name": "value"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "bool",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "withdraw",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "uint256",
+            "name": "wad"
+          }
+        ],
+        "outputs": []
+      },
+      {
+        "type": "receive",
+        "stateMutability": "payable"
+      }
+    ],
+    "Faucet": [
+      {
+        "type": "constructor",
+        "stateMutability": "undefined",
+        "payable": false,
+        "inputs": []
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "ETHClaimed",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "user",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "amount",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "CLAIM_AMOUNT",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "CLAIM_COOLDOWN",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "balance",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "claimETH",
+        "constant": false,
+        "payable": false,
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "cooldownLeft",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "user"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "lastClaimAt",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": ""
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      },
+      {
+        "type": "receive",
+        "stateMutability": "payable"
+      }
+    ],
+    "Arbitrage": [
+      {
+        "type": "error",
+        "name": "ReentrancyGuardReentrantCall",
+        "inputs": []
+      },
+      {
+        "type": "error",
+        "name": "SafeERC20FailedOperation",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "token"
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "ArbitrageExecuted",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "trader",
+            "indexed": true
+          },
+          {
+            "type": "address",
+            "name": "buyDEX",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "buyPoolId",
+            "indexed": false
+          },
+          {
+            "type": "address",
+            "name": "sellDEX",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "sellPoolId",
+            "indexed": false
+          },
+          {
+            "type": "address",
+            "name": "tokenIn",
+            "indexed": false
+          },
+          {
+            "type": "address",
+            "name": "tokenOut",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "amountOut",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "profit",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "event",
+        "anonymous": false,
+        "name": "PriceSnapshot",
+        "inputs": [
+          {
+            "type": "address",
+            "name": "dex",
+            "indexed": true
+          },
+          {
+            "type": "uint256",
+            "name": "poolId",
+            "indexed": false
+          },
+          {
+            "type": "address",
+            "name": "tokenIn",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "price",
+            "indexed": false
+          },
+          {
+            "type": "uint256",
+            "name": "timestamp",
+            "indexed": false
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "execute",
+        "constant": false,
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "buyDEX"
+          },
+          {
+            "type": "uint256",
+            "name": "buyPoolId"
+          },
+          {
+            "type": "address",
+            "name": "sellDEX"
+          },
+          {
+            "type": "uint256",
+            "name": "sellPoolId"
+          },
+          {
+            "type": "address",
+            "name": "tokenIn"
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn"
+          },
+          {
+            "type": "uint256",
+            "name": "minProfit"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": "profit"
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "preview",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "buyDEX"
+          },
+          {
+            "type": "uint256",
+            "name": "buyPoolId"
+          },
+          {
+            "type": "address",
+            "name": "sellDEX"
+          },
+          {
+            "type": "uint256",
+            "name": "sellPoolId"
+          },
+          {
+            "type": "address",
+            "name": "tokenIn"
+          },
+          {
+            "type": "uint256",
+            "name": "amountIn"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "tuple",
+            "name": "result",
+            "components": [
+              {
+                "type": "address",
+                "name": "tokenOut"
+              },
+              {
+                "type": "uint256",
+                "name": "midAmount"
+              },
+              {
+                "type": "uint256",
+                "name": "finalAmount"
+              },
+              {
+                "type": "uint256",
+                "name": "profit"
+              },
+              {
+                "type": "uint256",
+                "name": "priceBuyBefore"
+              },
+              {
+                "type": "uint256",
+                "name": "priceSellBefore"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "function",
+        "name": "price",
+        "constant": true,
+        "stateMutability": "view",
+        "payable": false,
+        "inputs": [
+          {
+            "type": "address",
+            "name": "dex"
+          },
+          {
+            "type": "uint256",
+            "name": "poolId"
+          },
+          {
+            "type": "address",
+            "name": "tokenIn"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "uint256",
+            "name": ""
+          }
+        ]
+      }
+    ]
+  }
+}
