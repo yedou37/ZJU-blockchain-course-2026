@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { MaxUint256 } from "ethers";
 import {
   ARBITRAGE,
@@ -15,6 +15,7 @@ import {
   type PoolInfo,
 } from "../lib/chain";
 import type { PageProps } from "../lib/types";
+import { BarCompare, GapMeter } from "../components/Charts";
 import { Badge, Button, Card, Empty, Field, Notice, Stat } from "../components/UI";
 
 type Plan = {
@@ -26,6 +27,22 @@ type Plan = {
   priceSell: bigint;
 };
 
+type Result = {
+  profit: bigint;
+  amountIn: bigint;
+  amountOut: bigint;
+  priceBefore: [number, number];
+  priceAfter: [number, number];
+  hash: string;
+};
+
+const STEPS = [
+  { title: "拉取资金", desc: "transferFrom 把 tokenIn 从套利者转入合约" },
+  { title: "低价买入", desc: "在便宜的池子 swapExactIn，把 tokenIn 换成 tokenOut" },
+  { title: "高价卖出", desc: "在贵的池子卖回 tokenIn" },
+  { title: "利润校验", desc: "回款 < 本金 + minProfit 则整笔 revert" },
+];
+
 export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
   const [pools, setPools] = useState<PoolInfo[]>([]);
   const [amount, setAmount] = useState("500");
@@ -34,14 +51,7 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
   const [busy, setBusy] = useState(false);
   const [frozen, setFrozen] = useState(false);
   const [balance, setBalance] = useState<bigint>(0n);
-  const [result, setResult] = useState<{
-    profit: bigint;
-    amountIn: bigint;
-    amountOut: bigint;
-    priceBefore: [number, number];
-    priceAfter: [number, number];
-    hash: string;
-  } | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
   const [history, setHistory] = useState<any[]>([]);
 
   const load = useCallback(async () => {
@@ -211,7 +221,7 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
   return (
     <div className="stack">
       <Card
-        title="价差监控（Bonus）"
+        title="价差监控（Bonus ①）"
         subtitle="两个交易所里存在同一个 TKA/TKB 交易对，价格不同就存在套利空间"
         actions={<Badge tone={gapBps > 100 ? "green" : "gray"}>价差 {fmtNum(gapBps, 0)} bps</Badge>}
       >
@@ -221,7 +231,9 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
               <div className="pool-card" key={pool.dexName}>
                 <div className="pool-card-head">
                   <strong>{pool.dexName}</strong>
-                  <span className="muted small">#{pool.poolId}</span>
+                  <span className="muted small">
+                    #{pool.poolId} {pool.symbol0}/{pool.symbol1}
+                  </span>
                 </div>
                 <div className="stat-row">
                   <Stat label={`${pool.symbol0} 储备`} value={fmt(pool.reserve0, 2)} />
@@ -230,12 +242,15 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
                     label="价格"
                     value={`${fmtNum(index === 0 ? priceA : priceB, 6)}`}
                     hint={`1 ${pool.symbol0} = ? ${pool.symbol1}`}
+                    tone={index === buyIndex ? "up" : "down"}
                   />
                 </div>
               </div>
             ) : null
           )}
         </div>
+
+        <GapMeter bps={gapBps} />
         <Notice>
           套利方向：在 <strong>{DEXES[buyIndex].name}</strong>（TKA 更便宜）用 {symbolIn} 买入 {symbolOut}，再到{" "}
           <strong>{DEXES[sellIndex].name}</strong> 卖出换回 {symbolIn}。
@@ -243,7 +258,7 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
       </Card>
 
       <div className="grid two">
-        <Card title="执行原子套利" subtitle="Arbitrage.execute()：pull 资金 → 买入 → 卖出 → 校验利润，不达标整体 revert">
+        <Card title="执行原子套利（Bonus ②）" subtitle="一次交易内完成买入与卖出，不达目标利润则整体回滚">
           <div className="form-row">
             <Field label={`投入数量（${symbolIn}）`} hint={`余额 ${fmt(balance, 4)} ${symbolIn}`}>
               <input
@@ -266,9 +281,25 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
             <Stat
               label="预计利润"
               value={`${fmt(plan?.profit ?? 0n, 4)} ${symbolIn}`}
-              tone={profitable ? "up" : "down"}
-              hint={plan && parseAmount(amount) > 0n ? `收益率 ${fmtNum(Number(plan.profit) / Number(parseAmount(amount)) * 100, 2)}%` : undefined}
+              tone={profitable ? "up" : undefined}
+              hint={
+                plan && parseAmount(amount) > 0n
+                  ? `收益率 ${fmtNum((Number(plan.profit) / Number(parseAmount(amount))) * 100, 2)}%`
+                  : undefined
+              }
             />
+          </div>
+
+          <div className="steps">
+            {STEPS.map((step, index) => (
+              <div className={`step ${result ? "done" : ""}`} key={step.title}>
+                <span className="step-index">{index + 1}</span>
+                <div>
+                  <strong>{step.title}</strong>
+                  <p className="muted small">{step.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="button-row">
@@ -276,7 +307,9 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
               一键套利
             </Button>
           </div>
-          {!profitable && plan && !frozen && <Notice kind="error">当前价差不足以覆盖手续费，套利会 revert</Notice>}
+          {!profitable && plan && !frozen && (
+            <Notice kind="error">当前价差不足以覆盖手续费，套利会 revert</Notice>
+          )}
           {status && <Notice kind={status.includes("失败") ? "error" : "ok"}>{status}</Notice>}
         </Card>
 
@@ -290,29 +323,12 @@ export default function Arbitrage({ account, signer, tick, bump }: PageProps) {
                 <Stat label="回款" value={`${fmt(result.amountOut, 4)} ${symbolIn}`} />
                 <Stat label="净利润" value={`${fmt(result.profit, 4)} ${symbolIn}`} tone="up" />
               </div>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>交易所</th>
-                      <th>套利前价格</th>
-                      <th>套利后价格</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{DEXES[0].name}</td>
-                      <td className="mono">{fmtNum(result.priceBefore[0], 6)}</td>
-                      <td className="mono">{fmtNum(result.priceAfter[0], 6)}</td>
-                    </tr>
-                    <tr>
-                      <td>{DEXES[1].name}</td>
-                      <td className="mono">{fmtNum(result.priceBefore[1], 6)}</td>
-                      <td className="mono">{fmtNum(result.priceAfter[1], 6)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <BarCompare
+                groups={[
+                  { label: DEXES[0].name, before: result.priceBefore[0], after: result.priceAfter[0] },
+                  { label: DEXES[1].name, before: result.priceBefore[1], after: result.priceAfter[1] },
+                ]}
+              />
               <p className="muted small mono">tx: {result.hash}</p>
             </>
           )}

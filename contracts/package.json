@@ -15,7 +15,8 @@
     "deploy": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:ganache": "hardhat run scripts/deploy.ts --network ganache",
     "simulate": "hardhat run scripts/simulate.ts --network localhost",
-    "prepare:users": "hardhat run scripts/prepare-users.ts --network localhost"
+    "prepare:users": "hardhat run scripts/prepare-users.ts --network localhost",
+    "verify": "hardhat run scripts/verify.ts --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox-mocha-ethers": "4.0.0",

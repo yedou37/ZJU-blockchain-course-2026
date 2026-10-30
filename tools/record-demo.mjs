@@ -7,13 +7,14 @@ import { execFileSync } from "node:child_process";
 
 /**
  * 自动演示：跑一遍完整业务流程，同时截图并录制演示视频。
- * 使用前先启动：contracts/ 里 npm run node && npm run deploy（可选 npm run prepare:users）
+ * 使用前先启动：contracts/ 里 npm run node && npm run deploy && npm run prepare:users
  * 运行：cd tools && npm run record
  */
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const shotDir = path.join(root, "docs", "screenshots");
 const videoDir = path.join(root, "docs", "video");
+fs.rmSync(shotDir, { recursive: true, force: true });
 fs.mkdirSync(shotDir, { recursive: true });
 fs.mkdirSync(videoDir, { recursive: true });
 
@@ -29,10 +30,8 @@ async function main() {
   const page = await context.newPage();
   page.on("pageerror", (error) => console.log("PAGE ERROR:", error.message));
 
-  let index = 1;
   const shot = async (name) => {
-    const file = path.join(shotDir, `${String(index).padStart(2, "0")}-${name}.png`);
-    index += 1;
+    const file = path.join(shotDir, `${name}.png`);
     await page.screenshot({ path: file, fullPage: true });
     console.log("截图", path.basename(file));
   };
@@ -49,30 +48,27 @@ async function main() {
   };
 
   await page.goto(APP_URL, { waitUntil: "networkidle" });
-  await pause(page, 2500);
+  await pause(page, 1200);
 
   // 1. 水龙头
   await step("faucet", async () => {
-    await shot("faucet");
-    for (const symbol of ["TKA", "TKB", "TKC"]) {
-      await page.getByRole("button", { name: `领取 ${symbol}` }).click();
-      await pause(page, 1600);
-    }
-    await page.getByRole("button", { name: "领取 1 ETH" }).click();
-    await pause(page, 2200);
-    await shot("faucet-claimed");
+    await tab("水龙头");
+    await shot("02-faucet");
+    await page.getByRole("button", { name: "一键领取全部" }).click();
+    await pause(page, 4500);
+    await shot("03-faucet-claimed");
   });
 
   // 2. 交易池
   await step("pools", async () => {
     await tab("交易池");
-    await shot("pools");
+    await shot("04-pools");
     await page.getByLabel("代币 A").selectOption("TKB");
     await page.getByLabel("代币 B").selectOption("TKC");
     await pause(page, 400);
     await page.getByRole("button", { name: "创建交易池" }).click();
     await pause(page, 2600);
-    await shot("pools-created");
+    await shot("05-pools-created");
   });
 
   // 3. 添加流动性 -> 铸造 NFT
@@ -83,21 +79,21 @@ async function main() {
     await page.getByLabel("TKB 数量").fill("1000");
     await page.getByLabel("TKC 数量").fill("1000");
     await pause(page, 900);
-    await shot("liquidity-form");
+    await shot("06-liquidity-form");
     await page.getByRole("button", { name: "添加流动性并铸造 NFT" }).click();
     await pause(page, 3200);
-    await shot("liquidity-nft");
+    await shot("07-liquidity-nft");
   });
 
   // 4. 兑换
   await step("trade", async () => {
     await tab("兑换");
     await page.getByLabel("支付数量（TKA）").fill("100");
-    await pause(page, 1400);
-    await shot("trade-quote");
+    await pause(page, 1500);
+    await shot("08-trade-quote");
     await page.getByRole("button", { name: "执行兑换" }).click();
     await pause(page, 3200);
-    await shot("trade-done");
+    await shot("09-trade-done");
   });
 
   // 5. 模拟交易
@@ -105,30 +101,28 @@ async function main() {
     await tab("模拟交易");
     await page.getByLabel("轮次").fill("12");
     await page.getByRole("button", { name: "运行模拟" }).click();
-    await page.waitForFunction(
-      () => document.body.innerText.includes("模拟完成"),
-      undefined,
-      { timeout: 180000 }
-    );
+    await page.waitForFunction(() => document.body.innerText.includes("模拟完成"), undefined, {
+      timeout: 180000,
+    });
     await pause(page, 1500);
-    await shot("simulation");
+    await shot("10-simulation");
   });
 
   // 6. 套利
   await step("arbitrage", async () => {
     await tab("套利");
-    await shot("arbitrage-gap");
+    await shot("11-arbitrage-gap");
     await page.getByRole("button", { name: "搜索最优投入" }).click();
     await pause(page, 3000);
-    await shot("arbitrage-optimal");
+    await shot("12-arbitrage-optimal");
     await page.getByRole("button", { name: "一键套利" }).click();
     await page.waitForFunction(
       () => document.body.innerText.includes("套利成功") || document.body.innerText.includes("套利失败"),
       undefined,
       { timeout: 120000 }
     );
-    await pause(page, 2000);
-    await shot("arbitrage-result");
+    await pause(page, 2200);
+    await shot("13-arbitrage-result");
   });
 
   // 7. 销毁 NFT 取回流动性
@@ -136,7 +130,14 @@ async function main() {
     await tab("流动性");
     await page.getByRole("button", { name: "销毁并取回" }).first().click();
     await pause(page, 3200);
-    await shot("liquidity-redeem");
+    await shot("14-liquidity-redeem");
+  });
+
+  // 8. 回到总览收尾
+  await step("overview-outro", async () => {
+    await tab("总览");
+    await pause(page, 1800);
+    await shot("01-overview");
   });
 
   const video = page.video();

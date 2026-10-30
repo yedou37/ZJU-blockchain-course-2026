@@ -5,16 +5,23 @@ import {
   dexContract,
   errorText,
   fmt,
-  fmtNum,
   formatTime,
   loadPools,
-  price0In1,
+  poolPriceText,
+  shortAddr,
   type PoolInfo,
 } from "../lib/chain";
 import type { PageProps } from "../lib/types";
 import { Badge, Button, Card, Empty, Field, Notice } from "../components/UI";
 
-export default function Pools({ signer, tick, bump }: PageProps) {
+const TOKEN_COLORS: Record<string, string> = {
+  TKA: "#2f6bff",
+  TKB: "#e8722b",
+  TKC: "#0a8f5b",
+  WETH: "#8b5cf6",
+};
+
+export default function Pools({ signer, tick, bump, navigate }: PageProps) {
   const [pools, setPools] = useState<PoolInfo[]>([]);
   const [dexIndex, setDexIndex] = useState(0);
   const [tokenA, setTokenA] = useState(TOKENS[0].symbol);
@@ -44,7 +51,7 @@ export default function Pools({ signer, tick, bump }: PageProps) {
       const dex = dexContract(dexIndex, signer);
       const tx = await dex.createPool(addressA, addressB);
       await tx.wait();
-      setStatus(`${DEXES[dexIndex].name} 创建 ${tokenA}/${tokenB} 交易池成功，请到「流动性」页注入初始资金`);
+      setStatus(`${DEXES[dexIndex].name} 创建 ${tokenA}/${tokenB} 交易池成功，接着去「流动性」注入初始资金`);
       bump();
       await load();
     } catch (error) {
@@ -98,51 +105,113 @@ export default function Pools({ signer, tick, bump }: PageProps) {
       {DEXES.map((dex, index) => {
         const dexPools = pools.filter((pool) => pool.dexIndex === index);
         return (
-          <Card
-            key={dex.address}
-            title={`${dex.name} 交易池`}
-            subtitle={`合约地址 ${dex.address}`}
-            actions={<Badge tone="gray">{dexPools.length} 个池子</Badge>}
-          >
+          <section key={dex.address} className="dex-section">
+            <header className="section-head">
+              <div>
+                <h2>{dex.name}</h2>
+                <p className="muted small mono">{dex.address}</p>
+              </div>
+              <Badge tone="gray">{dexPools.length} 个池子</Badge>
+            </header>
+
             {dexPools.length === 0 ? (
               <Empty>还没有交易池</Empty>
             ) : (
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>池子</th>
-                      <th>储备</th>
-                      <th>价格</th>
-                      <th>总份额</th>
-                      <th>交易次数</th>
-                      <th>创建时间</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dexPools.map((pool) => (
-                      <tr key={`${pool.dexIndex}-${pool.poolId}`}>
-                        <td>
-                          <Badge>#{pool.poolId}</Badge> {pool.symbol0}/{pool.symbol1}
-                        </td>
-                        <td className="mono">
-                          {fmt(pool.reserve0, 2)} {pool.symbol0} / {fmt(pool.reserve1, 2)} {pool.symbol1}
-                        </td>
-                        <td className="mono">
-                          1 {pool.symbol0} = {fmtNum(price0In1(pool), 6)} {pool.symbol1}
-                        </td>
-                        <td className="mono">{fmt(pool.totalShares, 2)}</td>
-                        <td>{Number(pool.swapCount)}</td>
-                        <td className="muted small">{formatTime(pool.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="pool-grid">
+                {dexPools.map((pool) => {
+                  const maxReserve = Math.max(Number(pool.reserve0), Number(pool.reserve1), 1);
+                  return (
+                    <article className="pool-tile" key={`${pool.dexIndex}-${pool.poolId}`}>
+                      <div className="pool-tile-head">
+                        <div className="pair">
+                          <span className="token-dot" style={{ background: TOKEN_COLORS[pool.symbol0] }} />
+                          <strong>{pool.symbol0}</strong>
+                          <span className="muted">/</span>
+                          <span className="token-dot" style={{ background: TOKEN_COLORS[pool.symbol1] }} />
+                          <strong>{pool.symbol1}</strong>
+                        </div>
+                        <Badge>#{pool.poolId}</Badge>
+                      </div>
+
+                      <div className="pool-price">{poolPriceText(pool)}</div>
+
+                      <div className="reserve-bars">
+                        <div className="reserve-row">
+                          <span className="muted small">{pool.symbol0}</span>
+                          <div className="reserve-track">
+                            <div
+                              className="reserve-fill"
+                              style={{
+                                width: `${(Number(pool.reserve0) / maxReserve) * 100}%`,
+                                background: TOKEN_COLORS[pool.symbol0] ?? "#94a3b8",
+                              }}
+                            />
+                          </div>
+                          <span className="mono small">{fmt(pool.reserve0, 2)}</span>
+                        </div>
+                        <div className="reserve-row">
+                          <span className="muted small">{pool.symbol1}</span>
+                          <div className="reserve-track">
+                            <div
+                              className="reserve-fill"
+                              style={{
+                                width: `${(Number(pool.reserve1) / maxReserve) * 100}%`,
+                                background: TOKEN_COLORS[pool.symbol1] ?? "#94a3b8",
+                              }}
+                            />
+                          </div>
+                          <span className="mono small">{fmt(pool.reserve1, 2)}</span>
+                        </div>
+                      </div>
+
+                      <div className="pool-meta">
+                        <span>总份额 {fmt(pool.totalShares, 2)}</span>
+                        <span>成交 {Number(pool.swapCount)} 次</span>
+                        <span className="muted small">{formatTime(pool.createdAt)}</span>
+                      </div>
+
+                      <div className="button-row">
+                        <Button size="sm" onClick={() => navigate("trade")}>
+                          兑换
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => navigate("liquidity")}>
+                          加流动性
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
-          </Card>
+          </section>
         );
       })}
+
+      <Card title="小提示" subtitle="每个池子都在链上维护 reserve0 / reserve1 / totalShares">
+        <ul className="list">
+          <li>
+            <Badge tone="gray">建池</Badge>
+            <span className="mono small">
+              同一交易对只能建一个池，地址排序后 token0 &lt; token1，避免重复池子
+            </span>
+          </li>
+          <li>
+            <Badge tone="gray">份额</Badge>
+            <span className="mono small">
+              首次注资 shares = √(x·y)，之后按比例配比，份额代表你在池子里的所有权
+            </span>
+          </li>
+          <li>
+            <Badge tone="gray">交易所</Badge>
+            <span className="mono small">
+              两个交易所相互独立，同一交易对价格不同就产生套利空间（见「套利」页）
+            </span>
+          </li>
+        </ul>
+        <p className="muted small">
+          合约：{DEXES.map((dex) => `${dex.name} ${shortAddr(dex.address)}`).join(" · ")}
+        </p>
+      </Card>
     </div>
   );
 }

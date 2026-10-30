@@ -15,10 +15,13 @@
 | **Bonus ①（2 分）** 部署多个交易所，同一代币对形成价差 | 部署 `MiniDEX-A` / `MiniDEX-B`，同一 TKA/TKB 池初始价格 1.0 vs 0.8 | `scripts/deploy.ts` |
 | **Bonus ②（3 分）** 原子套利：一笔交易内低买高卖，失败 revert，展示前后价格 / 数量 / 盈利 | `Arbitrage.execute()`：拉币 → 低价池买入 → 高价池卖出 → 校验利润，不足则整笔 revert | `Arbitrage.sol`、`pages/Arbitrage.tsx` |
 
+运行 `npm run verify` 可以在链上逐条自检这些要求，当前结果：**15/15 项通过**。
+
 ## 技术栈
 
 - 合约：Solidity 0.8.20 + Hardhat 3 + ethers v6 + TypeScript，OpenZeppelin 5.4（ERC20 / ERC721 / ReentrancyGuard / SafeERC20）
 - 前端：React 19 + Vite + TypeScript + ethers v6（直连本地节点，无需安装 MetaMask）
+- 图表：手写 SVG 组件（折线图 / 前后对比柱状图 / 价差刻度条），不引入图表库
 - 测试：Mocha + Chai（合约 14 个用例）、Vitest（前端）
 - 演示：Playwright 自动截图 + 录屏，ffmpeg 转 mp4
 
@@ -35,14 +38,16 @@ contracts/
 ├── scripts/
 │   ├── deploy.ts          # 一键部署（2 个交易所 + 套利合约 + 初始流动性）
 │   ├── prepare-users.ts   # 给 19 个测试账户领币并授权（供页面模拟使用）
-│   └── simulate.ts        # 20 用户 × 100 轮随机模拟 + 套利，输出报告
+│   ├── simulate.ts        # 20 用户 × 100 轮随机模拟 + 套利，输出报告
+│   └── verify.ts          # 按作业要求逐条自检链上状态
 └── test/                  # MiniDEX / Arbitrage / MockERC20 单元测试
 frontend/
 └── src/
     ├── lib/chain.ts       # provider、合约实例、格式化工具
     ├── lib/deployments.json  # 部署脚本自动生成（地址 + ABI）
-    ├── components/UI.tsx  # 通用卡片 / 按钮 / 指标组件
-    └── pages/             # 水龙头 / 交易池 / 兑换 / 流动性 / 模拟 / 套利
+    ├── components/UI.tsx  # 卡片 / 按钮 / 指标 / 徽标
+    ├── components/Charts.tsx  # 折线图 / 柱状对比 / 价差刻度
+    └── pages/             # 总览 / 水龙头 / 交易池 / 兑换 / 流动性 / 模拟 / 套利
 docs/
 ├── screenshots/           # 运行截图（README 引用）
 ├── video/demo.mp4         # 自动录制的演示视频
@@ -77,6 +82,7 @@ npm run deploy        # 部署代币 / WETH / Faucet / 两个 MiniDEX / Arbitrag
 ```bash
 npm run prepare:users # 让 19 个测试账户领币、包装 WETH 并授权
 npm run simulate      # 20 用户 × 100 轮随机交易 + 套利，生成 docs/simulation-log.md
+npm run verify        # 按作业要求逐条自检，输出 15 项检查清单
 ```
 
 ### 2. 启动前端
@@ -105,7 +111,7 @@ npx playwright install chromium
 npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 ```
 
-> 提示：`npm run record` 需要本地链已经部署且前端 `npm start` 正在运行。
+> 提示：`npm run record` 需要本地链**刚部署且还没被模拟脚本改过**（水龙头有冷却、初始价差要保留），并保持 `npm start` 正在运行。
 
 ## 功能实现分析
 
@@ -132,7 +138,7 @@ npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 ### 3. ERC721 流动性凭证与手续费分红
 
 - `MiniDEX` 自身继承 `ERC721`（`MiniDEX-LP`）。每添加一次流动性就 `_mint` 一枚 NFT，`positions[tokenId]` 记录 `poolId`、`shares`、建仓时的两种代币数量与 `createdAt`。
-- 前端「我的流动性凭证」展示每枚 NFT 的池子、份额、创建时间，以及**当前可赎回数量**（`getPositionValue` = `shares × reserve / totalShares`）。
+- 前端「我的流动性凭证」展示每枚 NFT 的池子、份额、创建时间、**当前可赎回数量**（`getPositionValue` = `shares × reserve / totalShares`），以及**手续费收益**（当前可赎回 − 建仓数量）。
 - 撤销流动性时先校验调用者是 NFT 持有者（或获批者），再按份额比例把两种代币转回，然后 `_burn` 销毁 NFT。由于手续费一直累积在 `reserve` 中，赎回数量天然大于建仓数量，这就是「手续费分红」。
 - `tokenURI` 直接返回 `data:application/json` 的链上元数据（池子编号、份额、代币符号、创建时间），所以在区块浏览器/钱包里也能看到这枚 NFT 的信息。
 - 「流动性来源」表格通过 `getAllPositions()` 一次性读取所有未销毁的凭证，可以看到每个池子的流动性分别由哪些地址提供。
@@ -158,7 +164,7 @@ npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 - `MiniDEX-A`：100,000 TKA / 100,000 TKB → 1 TKA = 1.0 TKB
 - `MiniDEX-B`：100,000 TKA / 80,000 TKB → 1 TKA = 0.8 TKB
 
-两个池子因此长期存在约 25% 的价差，前端「套利」页会实时显示两个池子的储备、价格和价差（bps）。
+两个池子因此长期存在约 25% 的价差，前端「套利」页会实时显示两个池子的储备、价格、价差（bps）以及一条带「手续费成本线」的价差刻度条。
 
 ### 6. Bonus ②：原子套利合约
 
@@ -174,69 +180,100 @@ npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 
 - 对比两个交易所的价格并给出套利方向；
 - 「搜索最优投入」在链上采样 40 个金额，取利润最大的一个；
-- 「一键套利」执行后展示**套利前后的价格、投入数量、回款数量、净利润与交易哈希**；
+- 「一键套利」执行后展示**套利前后的价格柱状对比、投入数量、回款数量、净利润与交易哈希**；
 - 价差不足时按钮禁用并提示「套利会 revert」。
+
+### 7. 前端交互
+
+- 顶部可以切换 20 个测试账户，并显示本地链区块高度、ETH 余额，数据每 4 秒自动刷新。
+- 七个标签页：总览（行情 / 资产 / 链上动态）、水龙头、交易池、兑换、流动性、模拟交易、套利。
+- 所有图表都是手写 SVG：折线图带面积渐变、网格与坐标轴；套利结果用前后对比柱状图；价差用带阈值的刻度条。
+- 每个操作都会回显状态（成功 / 失败原因），失败时直接展示合约 revert 原因。
 
 ## 项目运行截图
 
-**1. 水龙头：领取测试代币与测试 ETH**
+**1. 总览：行情、我的资产、链上活动与池子概览**
 
-![水龙头](docs/screenshots/01-faucet.png)
+![总览](docs/screenshots/01-overview.png)
 
-**2. 领取成功，余额实时刷新（带冷却提示）**
+**2. 水龙头：一键领取测试代币与测试 ETH**
 
-![领取成功](docs/screenshots/02-faucet-claimed.png)
+![水龙头](docs/screenshots/02-faucet.png)
 
-**3. 交易池列表：两个交易所、多个交易对的储备与价格**
+**3. 领取成功，余额与冷却时间实时刷新**
 
-![交易池](docs/screenshots/03-pools.png)
+![领取成功](docs/screenshots/03-faucet-claimed.png)
 
-**4. 前端创建新的交易池（TKB/TKC）**
+**4. 交易池：两个交易所、多个交易对的储备与价格**
 
-![创建交易池](docs/screenshots/04-pools-created.png)
+![交易池](docs/screenshots/04-pools.png)
 
-**5. 添加流动性：按池子比例自动配比**
+**5. 前端创建新的交易池（TKB/TKC）**
 
-![添加流动性](docs/screenshots/05-liquidity-form.png)
+![创建交易池](docs/screenshots/05-pools-created.png)
 
-**6. 铸造 ERC721 流动性凭证，并展示我的 NFT 与流动性来源**
+**6. 添加流动性：按池子比例自动配比**
 
-![流动性凭证](docs/screenshots/06-liquidity-nft.png)
+![添加流动性](docs/screenshots/06-liquidity-form.png)
 
-**7. 兑换：报价、价格冲击与滑点保护**
+**7. 铸造 ERC721 流动性凭证，展示份额、时间与手续费收益**
 
-![兑换报价](docs/screenshots/07-trade-quote.png)
+![流动性凭证](docs/screenshots/07-liquidity-nft.png)
 
-**8. 兑换完成：储备与价格随之变化**
+**8. 兑换：报价、价格冲击与滑点保护**
 
-![兑换完成](docs/screenshots/08-trade-done.png)
+![兑换报价](docs/screenshots/08-trade-quote.png)
 
-**9. 模拟交易：20 用户随机下单，价格曲线与操作日志**
+**9. 兑换完成：储备与价格随之变化**
 
-![模拟交易](docs/screenshots/09-simulation.png)
+![兑换完成](docs/screenshots/09-trade-done.png)
 
-**10. 套利：两个交易所的价差监控**
+**10. 模拟交易：20 用户随机下单，价格曲线与操作日志**
 
-![价差监控](docs/screenshots/10-arbitrage-gap.png)
+![模拟交易](docs/screenshots/10-simulation.png)
 
-**11. 采样搜索最优投入金额**
+**11. 套利：两个交易所的价差监控**
 
-![最优投入](docs/screenshots/11-arbitrage-optimal.png)
+![价差监控](docs/screenshots/11-arbitrage-gap.png)
 
-**12. 原子套利完成：前后价格、数量与净利润**
+**12. 采样搜索最优投入金额**
 
-![套利结果](docs/screenshots/12-arbitrage-result.png)
+![最优投入](docs/screenshots/12-arbitrage-optimal.png)
 
-**13. 销毁 NFT 赎回本金与手续费分红**
+**13. 原子套利完成：前后价格对比与净利润**
 
-![赎回流动性](docs/screenshots/13-liquidity-redeem.png)
+![套利结果](docs/screenshots/13-arbitrage-result.png)
+
+**14. 销毁 NFT 赎回本金与手续费分红**
+
+![赎回流动性](docs/screenshots/14-liquidity-redeem.png)
 
 ## 演示视频
 
-- 视频文件：[docs/video/demo.mp4](docs/video/demo.mp4)（约 50 秒，自动录制）
+- 视频文件：[docs/video/demo.mp4](docs/video/demo.mp4)（约 55 秒，自动录制）
 - 口播稿：[docs/video/narration.md](docs/video/narration.md)
 
-视频流程：领取测试币 → 创建交易池 → 添加流动性并拿到 NFT → 兑换 → 20 用户模拟 → 价差监控 → 一键套利 → 销毁 NFT 赎回。
+视频流程：领取测试币 → 创建交易池 → 添加流动性并拿到 NFT → 兑换 → 20 用户模拟 → 价差监控 → 一键套利 → 销毁 NFT 赎回 → 回到总览。
+
+## 自检结果（`npm run verify`）
+
+```
+✅ 至少两个 ERC20 代币              TKA / TKB / TKC（共 3 个）
+✅ 代币可领取（水龙头）             每个代币都有 claim() 与冷却查询
+✅ 可以领取测试 ETH                Faucet 余额 80.0 ETH
+✅ 前端可创建 / 查看 AMM 交易池      2 个交易所，共 4 个池子
+✅ 恒定乘积 + 手续费               手续费 30 bps
+✅ swap 报价可用                  100 token0 ≈ 89.98 token1
+✅ 流动性凭证是 ERC721 NFT         DEX-A 当前有 29 枚未销毁的 LP NFT
+✅ NFT 元数据包含池子信息           data:application/json;utf8,...
+✅ NFT 可销毁赎回                 #1 可赎回 105224.86 / 95052.96
+✅ 模拟用户随机交易                共 79 笔 swap，涉及 20 个交易地址
+✅ 模拟用户添加 / 撤销流动性         17 个地址提供过流动性
+✅ 至少 20 个模拟用户参与           交易地址 20 个 + 流动性地址 17 个
+✅ 部署了多个交易所                MiniDEX-A / MiniDEX-B
+✅ 套利合约存在并可调用             已执行 5 次套利，累计利润 535.37 TKB
+✅ 两个交易所价格差可量化           DEX-A 0.9033 / DEX-B 0.9040，价差 8 bps
+```
 
 ## 本地合约地址（`npm run deploy` 后）
 

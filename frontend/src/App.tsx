@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import type { JsonRpcSigner } from "ethers";
 import "./App.css";
 import { DEXES, fmt, getEthBalance, listAccounts, provider, shortAddr } from "./lib/chain";
+import type { TabKey } from "./lib/types";
+import Overview from "./pages/Overview";
 import Faucet from "./pages/Faucet";
 import Pools from "./pages/Pools";
 import Trade from "./pages/Trade";
@@ -9,27 +11,31 @@ import Liquidity from "./pages/Liquidity";
 import Simulation from "./pages/Simulation";
 import Arbitrage from "./pages/Arbitrage";
 
-type TabKey = "faucet" | "pools" | "trade" | "liquidity" | "simulation" | "arbitrage";
-
 const TABS: { key: TabKey; label: string; desc: string }[] = [
-  { key: "faucet", label: "水龙头", desc: "领取测试代币与 ETH" },
-  { key: "pools", label: "交易池", desc: "创建 / 查看 AMM 池" },
-  { key: "trade", label: "兑换", desc: "恒定乘积 swap" },
-  { key: "liquidity", label: "流动性", desc: "ERC721 凭证与分红" },
-  { key: "simulation", label: "模拟交易", desc: "20 用户随机操作" },
-  { key: "arbitrage", label: "套利", desc: "跨交易所原子套利" },
+  { key: "overview", label: "总览", desc: "行情与活动" },
+  { key: "faucet", label: "水龙头", desc: "领测试币" },
+  { key: "pools", label: "交易池", desc: "建池 / 查看" },
+  { key: "trade", label: "兑换", desc: "恒定乘积" },
+  { key: "liquidity", label: "流动性", desc: "ERC721 凭证" },
+  { key: "simulation", label: "模拟交易", desc: "20 个用户" },
+  { key: "arbitrage", label: "套利", desc: "跨所套利" },
 ];
 
 function App() {
   const [accounts, setAccounts] = useState<string[]>([]);
   const [account, setAccount] = useState("");
   const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
-  const [tab, setTab] = useState<TabKey>("faucet");
+  const [tab, setTab] = useState<TabKey>("overview");
   const [tick, setTick] = useState(0);
   const [eth, setEth] = useState(0n);
+  const [block, setBlock] = useState(0);
   const [error, setError] = useState("");
 
   const bump = useCallback(() => setTick((value) => value + 1), []);
+  const navigate = useCallback((next: TabKey) => {
+    setTab(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     listAccounts()
@@ -38,7 +44,7 @@ function App() {
         setAccount((previous) => previous || list[0] || "");
         setError("");
       })
-      .catch(() => setError("无法连接本地节点，请先在 contracts/ 目录运行 npm run node 与 npm run deploy"));
+      .catch(() => setError("无法连接本地节点：请先在 contracts/ 目录运行 npm run node 与 npm run deploy"));
   }, []);
 
   useEffect(() => {
@@ -51,6 +57,10 @@ function App() {
     getEthBalance(account)
       .then((value) => alive && setEth(value))
       .catch(() => undefined);
+    provider
+      .getBlockNumber()
+      .then((value) => alive && setBlock(value))
+      .catch(() => undefined);
     return () => {
       alive = false;
     };
@@ -62,7 +72,7 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  const pageProps = { account, signer, tick, bump };
+  const pageProps = { account, signer, tick, bump, navigate };
 
   return (
     <div className="app">
@@ -70,13 +80,14 @@ function App() {
         <div className="brand">
           <span className="logo">◈</span>
           <div>
-            <h1>MiniDEX · AMM 去中心化交易所</h1>
-            <p className="muted small">
-              Uniswap V2 风格 · 恒定乘积做市 · ERC721 流动性凭证 · 双交易所原子套利
-            </p>
+            <h1>MiniDEX</h1>
+            <p className="muted small">AMM 去中心化交易所 · 恒定乘积做市 · ERC721 流动性凭证 · 原子套利</p>
           </div>
         </div>
         <div className="wallet">
+          <span className="chain-pill">
+            <i className="dot" /> 本地链 #{block}
+          </span>
           <select value={account} onChange={(event) => setAccount(event.target.value)}>
             {accounts.map((address, index) => (
               <option key={address} value={address}>
@@ -110,6 +121,7 @@ function App() {
       </nav>
 
       <main className="content">
+        {tab === "overview" && <Overview {...pageProps} />}
         {tab === "faucet" && <Faucet {...pageProps} />}
         {tab === "pools" && <Pools {...pageProps} />}
         {tab === "trade" && <Trade {...pageProps} />}
@@ -122,9 +134,7 @@ function App() {
         <span>
           当前账户：<code>{account || "-"}</code>
         </span>
-        <span>
-          交易所：{DEXES.map((dex) => `${dex.name} ${shortAddr(dex.address)}`).join(" · ")}
-        </span>
+        <span>{DEXES.map((dex) => `${dex.name} ${shortAddr(dex.address)}`).join(" · ")}</span>
       </footer>
     </div>
   );

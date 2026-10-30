@@ -8,70 +8,17 @@ import {
   fmt,
   fmtNum,
   loadPools,
+  poolPriceText,
   provider,
   shortAddr,
   tokenContract,
   type PoolInfo,
 } from "../lib/chain";
 import type { PageProps } from "../lib/types";
+import { LineChart, type Series } from "../components/Charts";
 import { Badge, Button, Card, Empty, Field, Notice, Stat } from "../components/UI";
 
-type Series = { label: string; color: string; points: number[] };
-type LogRow = { id: number; text: string; kind: string };
-
-function PriceChart({ series }: { series: Series[] }) {
-  const width = 640;
-  const height = 220;
-  const padding = 28;
-  const values = series.flatMap((item) => item.points);
-  if (values.length === 0) return <Empty>还没有成交数据，跑一轮模拟或做几笔交易后就会出现价格曲线</Empty>;
-
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || max * 0.01 || 1;
-  const count = Math.max(...series.map((item) => item.points.length), 2);
-
-  const toPath = (points: number[]) =>
-    points
-      .map((value, index) => {
-        const x = padding + (index / Math.max(count - 1, 1)) * (width - padding * 2);
-        const y = height - padding - ((value - min) / span) * (height - padding * 2);
-        return `${index === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(" ");
-
-  return (
-    <div className="chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="价格走势">
-        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#dfe3ea" />
-        <line x1={padding} y1={padding} x2={padding} y2={height - padding} stroke="#dfe3ea" />
-        <text x={padding + 4} y={padding + 10} className="chart-label">
-          {fmtNum(max, 4)}
-        </text>
-        <text x={padding + 4} y={height - padding - 6} className="chart-label">
-          {fmtNum(min, 4)}
-        </text>
-        {series.map((item) => (
-          <path key={item.label} d={toPath(item.points)} fill="none" stroke={item.color} strokeWidth={2} />
-        ))}
-        {series.map((item) =>
-          item.points.map((value, index) => {
-            const x = padding + (index / Math.max(count - 1, 1)) * (width - padding * 2);
-            const y = height - padding - ((value - min) / span) * (height - padding * 2);
-            return <circle key={`${item.label}-${index}`} cx={x} cy={y} r={2.4} fill={item.color} />;
-          })
-        )}
-      </svg>
-      <div className="legend">
-        {series.map((item) => (
-          <span key={item.label}>
-            <i style={{ background: item.color }} /> {item.label}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
+type LogRow = { id: number; text: string; kind: "swap" | "skip" };
 
 export default function Simulation({ tick, bump }: PageProps) {
   const [pools, setPools] = useState<PoolInfo[]>([]);
@@ -81,13 +28,14 @@ export default function Simulation({ tick, bump }: PageProps) {
   const [rounds, setRounds] = useState("20");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
 
   const load = useCallback(async () => {
     const list = await loadPools();
     setPools(list);
 
-    const swapA: number[] = [];
-    const swapB: number[] = [];
+    const priceA: number[] = [];
+    const priceB: number[] = [];
     let swaps = 0;
     let adds = 0;
     let removes = 0;
@@ -104,8 +52,8 @@ export default function Simulation({ tick, bump }: PageProps) {
       removes += removeEvents.length;
 
       const points = poolSwaps.map((event) => Number(event.args.reserve1) / Number(event.args.reserve0));
-      if (dexIndex === 0) swapA.push(...points);
-      else swapB.push(...points);
+      if (dexIndex === 0) priceA.push(...points);
+      else priceB.push(...points);
     }
 
     const arbitrage = arbitrageContract();
@@ -114,8 +62,8 @@ export default function Simulation({ tick, bump }: PageProps) {
 
     setStats({ swaps, adds, removes, arbs: arbEvents.length, profit });
     setSeries([
-      { label: `${DEXES[0].name} 价格`, color: "#2f6bff", points: swapA.slice(-80) },
-      { label: `${DEXES[1].name} 价格`, color: "#e8722b", points: swapB.slice(-80) },
+      { label: `${DEXES[0].name} 价格`, color: "#2f6bff", points: priceA.slice(-80) },
+      { label: `${DEXES[1].name} 价格`, color: "#e8722b", points: priceB.slice(-80) },
     ]);
   }, []);
 
@@ -123,14 +71,15 @@ export default function Simulation({ tick, bump }: PageProps) {
     load().catch(() => undefined);
   }, [load, tick]);
 
-  const pushLog = (text: string, kind = "info") => {
-    setLogs((prev) => [{ id: Date.now() + Math.random(), text, kind }, ...prev].slice(0, 14));
+  const pushLog = (text: string, kind: LogRow["kind"] = "swap") => {
+    setLogs((prev) => [{ id: Date.now() + Math.random(), text, kind }, ...prev].slice(0, 12));
   };
 
   const runSimulation = async () => {
     setBusy(true);
     setStatus("模拟运行中…");
     const total = Math.max(1, Math.min(Number(rounds) || 10, 60));
+    setProgress({ done: 0, total });
     try {
       const signers = await provider.listAccounts();
       const poolList = await loadPools();
@@ -164,10 +113,11 @@ export default function Simulation({ tick, bump }: PageProps) {
             "swap"
           );
         } catch (error) {
-          pushLog(`第 ${round} 轮 · ${shortAddr(address)} 跳过：${errorText(error)}`, "error");
+          pushLog(`第 ${round} 轮 · ${shortAddr(address)} 跳过：${errorText(error)}`, "skip");
         }
+        setProgress({ done: round, total });
       }
-      setStatus(`模拟完成：共 ${total} 轮`);
+      setStatus(`模拟完成：共 ${total} 轮随机交易`);
       bump();
       await load();
     } catch (error) {
@@ -190,34 +140,54 @@ export default function Simulation({ tick, bump }: PageProps) {
 
   return (
     <div className="stack">
-      <Card title="模拟交易概览" subtitle="20 个测试账户在后台脚本与页面里随机交易、添加/撤销流动性">
+      <Card title="模拟交易概览" subtitle="20 个测试账户在后台脚本与页面里随机交易、添加 / 撤销流动性">
         <div className="stat-row">
           <Stat label="累计成交" value={stats.swaps} hint="Swap 事件数" />
-          <Stat label="添加流动性" value={stats.adds} hint="铸造的 ERC721 数量" />
-          <Stat label="撤销流动性" value={stats.removes} hint="销毁的 ERC721 数量" />
-          <Stat label="套利次数" value={stats.arbs} hint={`累计利润 ${fmt(stats.profit, 2)} TKB`} />
+          <Stat label="添加流动性" value={stats.adds} hint="铸造的 ERC721" />
+          <Stat label="撤销流动性" value={stats.removes} hint="销毁的 ERC721" />
+          <Stat label="套利" value={`${stats.arbs} 次`} hint={`利润 ${fmt(stats.profit, 2)} TKB`} />
           <Stat label="当前价差" value={`${fmtNum(gap, 0)} bps`} tone={gap > 100 ? "down" : "up"} />
         </div>
       </Card>
 
-      <Card title="TKA/TKB 价格走势" subtitle="每条曲线代表一个交易所，套利会让两条曲线重新靠近">
-        <PriceChart series={series} />
+      <Card title="TKA/TKB 价格走势" subtitle="随机交易把两个池子的价格推开，套利会让两条曲线重新靠近">
+        <LineChart
+          series={series}
+          height={260}
+          emptyHint="还没有成交数据，跑一轮模拟或做几笔交易后就会出现价格曲线"
+        />
       </Card>
 
       <div className="grid two">
-        <Card title="在页面里跑一轮随机交易" subtitle="使用节点预置的 20 个账户，随机选择交易所、池子和方向">
+        <Card title="在页面里跑一轮随机交易" subtitle="随机选择账户、交易所、池子和方向，逐笔上链">
           <div className="form-row">
-            <Field label="轮次">
+            <Field label="轮次" hint="建议 20 轮以内，方便演示">
               <input value={rounds} onChange={(event) => setRounds(event.target.value)} inputMode="numeric" />
             </Field>
             <Button onClick={runSimulation} disabled={busy}>
-              运行模拟
+              {busy ? "运行中…" : "运行模拟"}
             </Button>
           </div>
+
+          {progress.total > 0 && (
+            <div className="progress">
+              <div className="progress-track">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${(progress.done / progress.total) * 100}%` }}
+                />
+              </div>
+              <span className="muted small">
+                {progress.done} / {progress.total}
+              </span>
+            </div>
+          )}
+
           {status && <Notice kind={status.includes("失败") ? "error" : "ok"}>{status}</Notice>}
+
           <Notice>
             命令行版本的完整模拟（100 轮 + 自动套利 + 生成报告）：
-            <code>npx hardhat run scripts/simulate.ts --network localhost</code>
+            <code>npm run simulate</code>
           </Notice>
         </Card>
 
@@ -225,10 +195,13 @@ export default function Simulation({ tick, bump }: PageProps) {
           {logs.length === 0 ? (
             <Empty>点击「运行模拟」后这里会显示每一笔操作</Empty>
           ) : (
-            <ul className="list">
+            <ul className="feed">
               {logs.map((row) => (
                 <li key={row.id}>
-                  <Badge tone={row.kind === "error" ? "gray" : "blue"}>{row.kind}</Badge>
+                  <span className={`feed-dot ${row.kind === "skip" ? "gray" : ""}`} />
+                  <Badge tone={row.kind === "skip" ? "gray" : "blue"}>
+                    {row.kind === "skip" ? "跳过" : "swap"}
+                  </Badge>
                   <span className="mono small">{row.text}</span>
                 </li>
               ))}
@@ -259,10 +232,7 @@ export default function Simulation({ tick, bump }: PageProps) {
                   <td className="mono">
                     {fmt(pool.reserve0, 2)} / {fmt(pool.reserve1, 2)}
                   </td>
-                  <td className="mono">
-                    1 {pool.symbol0} = {fmtNum(Number(pool.reserve1) / Math.max(Number(pool.reserve0), 1), 6)}{" "}
-                    {pool.symbol1}
-                  </td>
+                  <td className="mono">{poolPriceText(pool)}</td>
                   <td>{Number(pool.swapCount)}</td>
                 </tr>
               ))}

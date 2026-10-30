@@ -18,6 +18,13 @@ import { Badge, Button, Card, Empty, Field, Notice, Stat } from "../components/U
 
 type SwapRow = { trader: string; amountIn: bigint; amountOut: bigint; tokenIn: string; block: number };
 
+const TOKEN_COLORS: Record<string, string> = {
+  TKA: "#2f6bff",
+  TKB: "#e8722b",
+  TKC: "#0a8f5b",
+  WETH: "#8b5cf6",
+};
+
 export default function Trade({ account, signer, tick, bump }: PageProps) {
   const [pools, setPools] = useState<PoolInfo[]>([]);
   const [selected, setSelected] = useState("0-1");
@@ -111,6 +118,7 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
   const priceImpact = midPrice > 0 && execPrice > 0 ? (1 - execPrice / midPrice) * 100 : 0;
   const slippageBps = Math.round(Number(slippage || "0") * 100);
   const minOut = (quote * BigInt(10_000 - Math.min(slippageBps, 9_999))) / 10_000n;
+  const insufficient = amountIn > balance;
 
   const swap = async () => {
     if (!signer || !pool || amountIn === 0n) return;
@@ -128,7 +136,7 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
       setStatus("交易打包中…");
       const tx = await dex.swapExactIn(pool.poolId, tokenIn, amountIn, minOut, account);
       await tx.wait();
-      setStatus(`交易成功：${amount} ${symbolIn} → 至少 ${fmt(minOut, 4)} ${symbolOut}（tx ${tx.hash.slice(0, 10)}…）`);
+      setStatus(`交易成功：${amount} ${symbolIn} → 至少 ${fmt(minOut, 4)} ${symbolOut}`);
       bump();
       await load();
     } catch (error) {
@@ -140,7 +148,7 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
 
   return (
     <div className="grid two">
-      <Card title="兑换" subtitle="恒定乘积做市：支付 0.3% 手续费，滑点随交易量增大">
+      <Card title="兑换" subtitle="恒定乘积做市：每笔收取 0.3% 手续费，滑点随交易量增大">
         <div className="form-row">
           <Field label="交易池">
             <select value={selected} onChange={(event) => setSelected(event.target.value)}>
@@ -163,32 +171,67 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
           </Field>
         </div>
 
+        <div className="swap-panel">
+          <div className="swap-row">
+            <div className="swap-token">
+              <span className="token-dot" style={{ background: TOKEN_COLORS[symbolIn] ?? "#94a3b8" }} />
+              {symbolIn || "-"}
+            </div>
+            <input
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              inputMode="decimal"
+              placeholder="0.0"
+              aria-label={`支付数量（${symbolIn}）`}
+            />
+            <button className="link-btn" onClick={() => setAmount(fmt(balance, 18).replace(/,/g, ""))}>
+              全部
+            </button>
+          </div>
+          <div className="swap-hint">
+            余额 {fmt(balance, 4)} {symbolIn}
+            {insufficient && <span className="down"> · 余额不足</span>}
+          </div>
+
+          <div className="swap-divider">
+            <span>↓</span>
+          </div>
+
+          <div className="swap-row readonly">
+            <div className="swap-token">
+              <span className="token-dot" style={{ background: TOKEN_COLORS[symbolOut] ?? "#94a3b8" }} />
+              {symbolOut || "-"}
+            </div>
+            <strong className="swap-output">{fmt(quote, 6)}</strong>
+          </div>
+          <div className="swap-hint">预计得到（已扣 0.3% 手续费）</div>
+        </div>
+
+        <div className="impact">
+          <div className="impact-head">
+            <span className="muted small">价格冲击</span>
+            <span className={priceImpact > 1 ? "down" : "up"}>{fmtNum(priceImpact, 3)}%</span>
+          </div>
+          <div className="impact-track">
+            <div
+              className={`impact-fill ${priceImpact > 1 ? "warn" : ""}`}
+              style={{ width: `${Math.min(priceImpact * 12, 100)}%` }}
+            />
+          </div>
+        </div>
+
         <div className="form-row">
-          <Field label={`支付数量（${symbolIn}）`} hint={`余额 ${fmt(balance, 4)} ${symbolIn}`}>
-            <input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" />
-          </Field>
           <Field label="滑点容忍 (%)">
             <input value={slippage} onChange={(event) => setSlippage(event.target.value)} inputMode="decimal" />
           </Field>
-        </div>
-
-        <div className="stat-row">
-          <Stat label="预计得到" value={`${fmt(quote, 6)} ${symbolOut}`} />
-          <Stat label="最少得到" value={`${fmt(minOut, 6)} ${symbolOut}`} hint={`滑点 ${slippage || 0}%`} />
-          <Stat
-            label="价格冲击"
-            value={`${fmtNum(priceImpact, 3)}%`}
-            tone={priceImpact > 1 ? "down" : "up"}
-            hint={`成交价 ${fmtNum(execPrice, 6)}`}
-          />
+          <Field label="最少得到">
+            <input value={`${fmt(minOut, 6)} ${symbolOut}`} readOnly />
+          </Field>
         </div>
 
         <div className="button-row">
-          <Button onClick={swap} disabled={busy || !signer || amountIn === 0n}>
-            执行兑换
-          </Button>
-          <Button variant="ghost" onClick={() => setAmount(fmt(balance, 18).replace(/,/g, ""))}>
-            全部
+          <Button onClick={swap} disabled={busy || !signer || amountIn === 0n || insufficient}>
+            {insufficient ? "余额不足" : "执行兑换"}
           </Button>
         </div>
 
@@ -196,20 +239,48 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
       </Card>
 
       <div className="stack">
-        <Card title="池子状态" subtitle="兑换后储备与价格会随之变化">
+        <Card title="交易路径" subtitle="一笔交易直接与池子成交，不经过订单簿">
           {!pool ? (
             <Empty>请选择交易池</Empty>
           ) : (
-            <div className="stat-row">
-              <Stat label={`${pool.symbol0} 储备`} value={fmt(pool.reserve0, 4)} />
-              <Stat label={`${pool.symbol1} 储备`} value={fmt(pool.reserve1, 4)} />
-              <Stat label="价格" value={`${fmtNum(price0In1(pool), 6)} ${pool.symbol1}`} hint={`1 ${pool.symbol0}`} />
-              <Stat
-                label="k = x·y"
-                value={Number(pool.reserve0 * pool.reserve1).toExponential(3)}
-                hint="恒定乘积"
-              />
-            </div>
+            <>
+              <div className="route">
+                <div className="route-node">
+                  <span className="token-dot" style={{ background: TOKEN_COLORS[symbolIn] ?? "#94a3b8" }} />
+                  {symbolIn}
+                </div>
+                <div className="route-arrow">
+                  <span className="mono small">{amount || "0"}</span>
+                  <div className="route-line" />
+                </div>
+                <div className="route-pool">
+                  <span className="muted small">池子</span>
+                  <strong>
+                    #{pool.poolId} {pool.symbol0}/{pool.symbol1}
+                  </strong>
+                  <span className="muted small">{DEXES[pool.dexIndex].name}</span>
+                </div>
+                <div className="route-arrow">
+                  <span className="mono small">{fmt(quote, 2)}</span>
+                  <div className="route-line" />
+                </div>
+                <div className="route-node">
+                  <span className="token-dot" style={{ background: TOKEN_COLORS[symbolOut] ?? "#94a3b8" }} />
+                  {symbolOut}
+                </div>
+              </div>
+
+              <div className="stat-row">
+                <Stat label={`${pool.symbol0} 储备`} value={fmt(pool.reserve0, 2)} />
+                <Stat label={`${pool.symbol1} 储备`} value={fmt(pool.reserve1, 2)} />
+                <Stat
+                  label="价格"
+                  value={`${fmtNum(price0In1(pool), 6)} ${pool.symbol1}`}
+                  hint={`1 ${pool.symbol0}`}
+                />
+                <Stat label="k = x·y" value={Number(pool.reserve0 * pool.reserve1).toExponential(3)} />
+              </div>
+            </>
           )}
         </Card>
 
@@ -221,7 +292,7 @@ export default function Trade({ account, signer, tick, bump }: PageProps) {
               {history.map((row) => (
                 <li key={`${row.block}-${row.trader}-${row.amountIn}`}>
                   <Badge tone="gray">#{row.block}</Badge>
-                  <span className="mono">
+                  <span className="mono small">
                     {shortAddr(row.trader)} 用 {fmt(row.amountIn, 3)}{" "}
                     {row.tokenIn.toLowerCase() === pool?.token0.toLowerCase() ? pool?.symbol0 : pool?.symbol1} 换出{" "}
                     {fmt(row.amountOut, 3)}

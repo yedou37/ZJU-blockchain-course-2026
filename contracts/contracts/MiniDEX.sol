@@ -317,10 +317,12 @@ contract MiniDEX is ERC721, ReentrancyGuard {
         uint256 shares;
         uint256 amount0;
         uint256 amount1;
+        uint256 amount0AtMint;
+        uint256 amount1AtMint;
         uint256 createdAt;
     }
 
-    /// @notice 一次性返回所有未销毁的流动性凭证，方便前端展示「流动性来源」
+    /// @notice 一次性返回所有未销毁的流动性凭证，方便前端展示「流动性来源」与手续费收益
     function getAllPositions() external view returns (PositionView[] memory list) {
         list = new PositionView[](positionCount);
         for (uint256 i = 1; i <= positionCount; i++) {
@@ -337,6 +339,8 @@ contract MiniDEX is ERC721, ReentrancyGuard {
                 shares: position.shares,
                 amount0: amount0,
                 amount1: amount1,
+                amount0AtMint: position.amount0AtMint,
+                amount1AtMint: position.amount1AtMint,
                 createdAt: position.createdAt
             });
         }

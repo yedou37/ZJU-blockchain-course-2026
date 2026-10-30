@@ -1,7 +1,7 @@
 {
   "chainId": 31337,
   "rpcUrl": "http://127.0.0.1:8545",
-  "deployedAt": "2026-10-30T09:08:13.900Z",
+  "deployedAt": "2026-10-30T09:40:54.985Z",
   "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "tokens": [
     {
@@ -574,6 +574,14 @@
               {
                 "type": "uint256",
                 "name": "amount1"
+              },
+              {
+                "type": "uint256",
+                "name": "amount0AtMint"
+              },
+              {
+                "type": "uint256",
+                "name": "amount1AtMint"
               },
               {
                 "type": "uint256",

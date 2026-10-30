@@ -151,6 +151,15 @@ export const formatTime = (timestamp: bigint): string => {
   return date.toLocaleString("zh-CN", { hour12: false });
 };
 
+/** 池子价格文案：没有储备时显示占位符，避免出现 0.000000 的误导 */
+export const poolPriceText = (pool: {
+  reserve0: bigint;
+  reserve1: bigint;
+  symbol0: string;
+  symbol1: string;
+}): string =>
+  pool.reserve0 === 0n ? "—" : `1 ${pool.symbol0} = ${fmtNum(price0In1(pool), 6)} ${pool.symbol1}`;
+
 export const errorText = (error: unknown): string => {
   const message = (error as any)?.shortMessage ?? (error as any)?.message ?? String(error);
   return message.split("\n")[0].slice(0, 160);
