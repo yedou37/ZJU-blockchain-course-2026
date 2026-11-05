@@ -250,10 +250,10 @@ npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 
 ## 演示视频
 
-- 视频文件：[docs/video/demo.mp4](docs/video/demo.mp4)（约 55 秒，自动录制）
+- 视频文件：[docs/video/demo.mp4](docs/video/demo.mp4)（约 55 秒，自动录制，**已内嵌中文字幕**，逐步讲解每一步在做什么）
 - 口播稿：[docs/video/narration.md](docs/video/narration.md)
 
-视频流程：领取测试币 → 创建交易池 → 添加流动性并拿到 NFT → 兑换 → 20 用户模拟 → 价差监控 → 一键套利 → 销毁 NFT 赎回 → 回到总览。
+视频流程：领取测试币 → 创建交易池 → 添加流动性并拿到 NFT → 兑换 → **价差监控与一键原子套利（Bonus）** → 20 用户随机模拟 → 销毁 NFT 赎回 → 回到总览。
 
 ## 自检结果（`npm run verify`）
 
