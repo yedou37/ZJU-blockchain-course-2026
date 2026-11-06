@@ -1,6 +1,6 @@
-# DApp 前端起始框架
+# MiniDEX 前端
 
-使用 React、TypeScript 和 Vite，保留基础示例页面，供后续实现 DApp 功能。
+使用 React 19、TypeScript 和 Vite 实现 MiniDEX 的全部页面：总览看板、水龙头、交易池、兑换、流动性凭证（NFT）、模拟交易与套利（Bonus）。页面通过 ethers v6 直连本地 Hardhat 节点，无需钱包插件。
 
 ## 安装与运行
 
@@ -20,7 +20,7 @@ npm ci
 npm start
 ```
 
-访问终端显示的地址（默认 [http://localhost:3000](http://localhost:3000)，端口占用时自动选择其他端口），修改 `src/App.tsx` 即可开始开发。`npm run dev` 与 `npm start` 等效。
+访问终端显示的地址（默认 [http://localhost:3000](http://localhost:3000)，端口占用时自动选择其他端口）。`npm run dev` 与 `npm start` 等效。
 
 ## 检查与构建
 

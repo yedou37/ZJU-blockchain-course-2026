@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "React DApp Starter",
+  "short_name": "MiniDEX",
+  "name": "MiniDEX · AMM 去中心化交易所",
   "icons": [
     {
       "src": "favicon.ico",

@@ -1,6 +1,6 @@
 # MiniDEX 合约工程
 
-使用 Hardhat 3、ethers 6 和 TypeScript。`contracts/MiniDEX.sol` 目前仅是 Demo，DEX 功能尚待实现。
+使用 Hardhat 3、ethers 6 和 TypeScript。包含 MiniDEX（AMM 核心 + ERC721 流动性凭证）、Arbitrage（原子套利）、MockERC20 / MockWETH / Faucet（测试代币与水龙头）五份合约，配套部署、模拟用户准备、随机交易模拟与链上自检脚本。合约功能详见仓库根目录 README 的「功能实现分析」。
 
 ## 安装与检查
 
