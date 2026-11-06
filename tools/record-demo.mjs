@@ -23,9 +23,19 @@ const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const pause = (page, ms = 900) => page.waitForTimeout(ms);
 
 async function main() {
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    headless: true,
+    // 锁定窗口尺寸与设备像素比，避免无头 Chromium 在录制时把窗口缩放/letterbox，
+    // 否则切换页面瞬间会出现“缩到一个角/边再展开”的闪屏残影。
+    args: [
+      "--window-size=1280,820",
+      "--force-device-scale-factor=1",
+      "--hide-scrollbars",
+    ],
+  });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 820 },
+    deviceScaleFactor: 1,
     recordVideo: { dir: path.join(videoDir, "raw"), size: { width: 1280, height: 820 } },
   });
   const page = await context.newPage();
@@ -33,7 +43,16 @@ async function main() {
 
   const shot = async (name) => {
     const file = path.join(shotDir, `${name}.png`);
-    await page.screenshot({ path: file, fullPage: true });
+    // 用 clip 截取整页，而不是 fullPage：两者视觉一致，但 clip 不会临时改变视口尺寸，
+    // 因此不会在录制视频里留下“缩小再展开”的残影。
+    const h = await page.evaluate(() =>
+      Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, 820)
+    );
+    await page.screenshot({
+      path: file,
+      clip: { x: 0, y: 0, width: 1280, height: h },
+      animations: "disabled",
+    });
     console.log("截图", path.basename(file));
   };
   const step = async (name, action) => {
@@ -74,6 +93,7 @@ async function main() {
   // 注入字幕容器与样式
   await page.addStyleTag({
     content: `
+      html { scroll-behavior: auto !important; }
       #rec-caption {
         position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
         max-width: 94%; box-sizing: border-box;
@@ -89,6 +109,8 @@ async function main() {
     el.id = "rec-caption";
     document.body.appendChild(el);
   });
+  // 给浏览器窗口一点稳定时间，确保首帧已是 1280x820，避免开场缩放残影
+  await pause(page, 800);
 
   await setCaption(
     "MiniDEX：Uniswap V2 风格的 AMM 去中心化交易所。右上角可切换 20 个测试账户，相当于 20 个用户。"
