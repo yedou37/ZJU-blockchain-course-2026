@@ -88,24 +88,6 @@ npm start             # 打开 http://localhost:3000
 
 页面右上角的下拉框可以直接切换 20 个测试账户（相当于 20 个用户），无需安装 MetaMask。
 
-### 3. 跑测试
-
-```bash
-cd contracts && npm test     # 合约：14 个用例
-cd frontend && npm test      # 前端：格式化工具与组件
-```
-
-### 4. 重新生成截图与演示视频（可选）
-
-```bash
-cd tools
-npm install
-npx playwright install chromium
-npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
-```
-
-> 提示：`npm run record` 需要本地链**刚部署且还没被模拟脚本改过**（水龙头有冷却、初始价差要保留），并保持 `npm start` 正在运行。
-
 ## 功能实现分析
 
 ### 1. ERC20 测试代币与多用户水龙头
@@ -238,26 +220,6 @@ npm run record        # 输出 docs/screenshots/*.png 与 docs/video/demo.mp4
 **14. 销毁 NFT 赎回本金与手续费分红**
 
 ![赎回流动性](docs/screenshots/14-liquidity-redeem.png)
-
-## 演示视频
-
-- 视频文件：[docs/video/demo.mp4](docs/video/demo.mp4)（约 55 秒，**已内嵌中文字幕**，逐步讲解每一步在做什么）
-
-视频流程：领取测试币 → 创建交易池 → 添加流动性并拿到 NFT → 兑换 → **价差监控与一键原子套利（Bonus）** → 20 用户随机模拟 → 销毁 NFT 赎回 → 回到总览。
-
-## 测试
-
-`contracts/` 下的 Mocha 测试覆盖：
-
-- MockERC20 水龙头（领取 / 冷却）
-- MiniDEX：建池、首次与后续加流动性、swap 手续费与 k 值、滑点 revert、销毁 NFT 赎回并获得分红、非持有者不能撤池、tokenURI 元数据
-- Arbitrage：有利可图时盈利且价差收敛、利润要求过高 revert 且储备不变、反向套利 revert、同池套利 revert
-
-## 说明与取舍
-
-- ETH 交易对使用 `MockWETH` 包装实现，而不是在 AMM 里同时支持 native ETH，这样定价、流动性、套利逻辑只需要维护一套 ERC20 分支，代码更短也更好验证。
-- 手续费固定 0.3%（Uniswap V2 的默认值），协议不抽成，全部留给 LP；分红通过储备增长体现，没有额外的「分红提取」函数。
-- 所有交易都直接由本地节点代签（`accounts: "remote"`），因此演示时不需要安装 MetaMask；如果要接入真实钱包，只需把 `provider` 换成 `BrowserProvider`。
 
 ## 参考内容
 

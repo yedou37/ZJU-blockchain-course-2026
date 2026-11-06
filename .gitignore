@@ -1,4 +1,5 @@
 # 本地工具与依赖
 node_modules/
+tools/
 .DS_Store
 *.log
